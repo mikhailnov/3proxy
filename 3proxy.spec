@@ -32,7 +32,7 @@ day of week, etc.
 sed -i -e "s/CFLAGS =/CFLAGS +=/" Makefile.Linux
 
 %build
-%make -f Makefile.Linux
+%make_build -f Makefile.Linux
 
 %install
 
