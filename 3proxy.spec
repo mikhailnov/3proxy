@@ -1,15 +1,16 @@
 %global _hardened_build 1
 
 Name:		3proxy
-Version:	0.8.2
+Version:	0.8.13
 Release:	1
 Summary:	Tiny but very powerful proxy
 License:	BSD or ASL 2.0 or GPLv2+ or LGPLv2+
 Group:		Networking/Other
-Url:		http://3proxy.ru/?l=EN
-Source0:	https://github.com/z3APA3A/%{name}/archive/%{name}-%{version}.tar.gz
+Url:		http://3proxy.ru/
+Source0:	https://github.com/z3APA3A/3proxy/archive/%{version}.tar.gz?/%{name}-%{version}.tar.gz
 Source2:	3proxy.cfg
 Source3:	3proxy.service
+BuildRequires:	gcc
 BuildRequires:	openssl-devel
 Patch0:		3proxy-0.6.1-config-path.patch
 Requires(post):		systemd
@@ -24,14 +25,15 @@ limitation and accounting based on username, client IP, target IP, day time,
 day of week, etc.
 
 %prep
-%setup -qn %{name}-%{name}-%{version}
+%setup -q
 
-%patch0 -p0 -b .man-cfg
+%autopatch -p0
 
 # To use "fedora" CFLAGS (exported)
 sed -i -e "s/CFLAGS =/CFLAGS +=/" Makefile.Linux
 
 %build
+%setup_compile_flags
 %make -f Makefile.Linux
 
 %install
@@ -60,13 +62,10 @@ install -pD -m755 %{SOURCE3} %{buildroot}/%{_unitdir}/%{name}.service
 
 cat > %{buildroot}%{_sysconfdir}/NetworkManager/dispatcher.d/40-%{name} <<EOF
 #!/bin/sh
-
 	if [ "\$2" = "up" ]; then
-	/sbin/service %{name} condrestart || : # reload doesn't work
+	  systemctl try-restart %{name}.service || : # reload doesn't work
 	fi
 EOF
-
-%clean
 
 %post
 %systemd_post %{name}.service
